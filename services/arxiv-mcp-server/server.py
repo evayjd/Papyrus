@@ -12,9 +12,10 @@ from mcp.types import Tool, TextContent
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from backend.core.config import settings
 
+#创建server
 app = Server("arxiv-mcp-server")
 
-
+#声明工具列表
 @app.list_tools()
 async def list_tools() -> list[Tool]:
     return [
@@ -50,7 +51,7 @@ async def list_tools() -> list[Tool]:
         ),
     ]
 
-
+#处理工具调用
 @app.call_tool()
 async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     if name == "search_papers":
