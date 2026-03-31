@@ -66,7 +66,7 @@ async def search_papers(arguments: dict) -> list[TextContent]:
     query = arguments["query"]
     max_results = arguments.get("max_results", settings.ARXIV_MAX_RESULTS)
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         response = await client.get(
             settings.ARXIV_API_URL,
             params={
@@ -105,7 +105,7 @@ async def search_papers(arguments: dict) -> list[TextContent]:
 async def get_paper_detail(arguments: dict) -> list[TextContent]:
     arxiv_id = arguments["arxiv_id"]
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         response = await client.get(
             settings.ARXIV_API_URL,
             params={"id_list": arxiv_id},

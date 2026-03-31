@@ -8,7 +8,6 @@ from backend.rag.store import upsert_paper, hybrid_search
 
 async def test():
     async with AsyncSessionLocal() as db:
-        # 存一篇假论文
         paper = await upsert_paper(db, {
             "arxiv_id": "2301.00001",
             "title": "Retrieval Augmented Generation for Large Language Models",
