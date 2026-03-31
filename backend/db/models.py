@@ -1,24 +1,25 @@
 import uuid
-from datetime import datetime
-from sqlalchemy import String, Boolean, Float, Text, DateTime, ForeignKey, Enum as SAEnum
+from datetime import datetime, timezone
+from sqlalchemy import String, Boolean, Float, Text, ForeignKey, Enum as SAEnum
+from sqlalchemy import DateTime as SADateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from pgvector.sqlalchemy import Vector
 from backend.db.database import Base
 import enum
 
-# --- 枚举类型 ---
 
 class SessionStatus(enum.Enum):
     running = "running"
     done = "done"
     failed = "failed"
 
+
 class MessageRole(enum.Enum):
     user = "user"
     assistant = "assistant"
     agent = "agent"
 
-# --- 模型 ---
 
 class User(Base):
     __tablename__ = "users"
@@ -27,8 +28,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     display_name: Mapped[str] = mapped_column(String, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    last_login_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    last_login_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), nullable=True)
 
     sessions: Mapped[list["Session"]] = relationship(back_populates="user")
     reports: Mapped[list["Report"]] = relationship(back_populates="user")
@@ -41,8 +42,8 @@ class Session(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=True)
     status: Mapped[SessionStatus] = mapped_column(SAEnum(SessionStatus), default=SessionStatus.running)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user: Mapped["User"] = relationship(back_populates="sessions")
     messages: Mapped[list["Message"]] = relationship(back_populates="session")
@@ -57,7 +58,7 @@ class Message(Base):
     role: Mapped[MessageRole] = mapped_column(SAEnum(MessageRole), nullable=False)
     agent_name: Mapped[str] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     session: Mapped["Session"] = relationship(back_populates="messages")
 
@@ -71,7 +72,7 @@ class Report(Base):
     title: Mapped[str] = mapped_column(String, nullable=True)
     content: Mapped[dict] = mapped_column(JSONB, nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     session: Mapped["Session"] = relationship(back_populates="reports")
     user: Mapped["User"] = relationship(back_populates="reports")
@@ -87,8 +88,9 @@ class Paper(Base):
     title: Mapped[str] = mapped_column(String, nullable=True)
     authors: Mapped[dict] = mapped_column(JSONB, nullable=True)
     abstract: Mapped[str] = mapped_column(Text, nullable=True)
-    published_date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    fetched_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    published_date: Mapped[datetime] = mapped_column(SADateTime(timezone=True), nullable=True)
+    embedding: Mapped[list] = mapped_column(Vector(384), nullable=True)
+    fetched_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     reports: Mapped[list["Report"]] = relationship(secondary="report_papers", back_populates="papers")
 
@@ -109,6 +111,6 @@ class Evaluation(Base):
     faithfulness: Mapped[float] = mapped_column(Float, nullable=True)
     answer_relevancy: Mapped[float] = mapped_column(Float, nullable=True)
     context_recall: Mapped[float] = mapped_column(Float, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(SADateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     report: Mapped["Report"] = relationship(back_populates="evaluation")

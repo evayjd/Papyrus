@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     ARXIV_API_URL: str = "http://export.arxiv.org/api/query"
     ARXIV_MAX_RESULTS: int = 5
     ARXIV_TIMEOUT: int = 30
+    
+    # --- 其他配置项 --- #
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
 
     class Config:
         env_file = ".env"
