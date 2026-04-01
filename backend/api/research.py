@@ -11,6 +11,7 @@ from backend.agents.graph import papyrus_graph
 from backend.api.deps import get_current_user
 from backend.db.models import User
 from backend.core.security import decode_access_token
+from backend.core.observability import get_langfuse_callback
 
 router = APIRouter(prefix="/research", tags=["research"])
 
@@ -95,6 +96,7 @@ async def research_websocket(
                 "current_step": "",
                 "error": None,
             },
+            config={"callbacks": [get_langfuse_callback()]},
             stream_mode="updates",
         ):
             for node_name, node_output in event.items():

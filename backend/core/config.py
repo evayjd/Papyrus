@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     # Ollama
     OLLAMA_MODEL: str = "llama3.2"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
+    
+    #others
+    LANGFUSE_HOST: str = "https://cloud.langfuse.com"
 
     class Config:
         env_file = ".env"
