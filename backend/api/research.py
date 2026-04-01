@@ -131,13 +131,13 @@ async def research_websocket(
                     await db.flush()
 
                     # Ragas 评估
-                    asyncio.create_task(evaluate_report(
+                    await evaluate_report(
                         db=db,
                         report_id=str(report.id),
                         query=query,
                         report_content=report_content,
                         papers=papers,
-                    ))
+                    )
 
                     session.status = SessionStatus.done
                     session.title = query[:100]

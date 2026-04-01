@@ -22,7 +22,7 @@ async def test():
         print(f"创建 session: {session_id}")
 
     uri = f"ws://localhost:8000/research/ws/{session_id}"
-    async with websockets.connect(uri) as ws:
+    async with websockets.connect(uri, ping_timeout=300) as ws:
         # 发送 token
         await ws.send(json.dumps({"token": token}))
 
