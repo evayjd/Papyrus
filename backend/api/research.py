@@ -4,6 +4,7 @@ from sqlalchemy import select
 import json
 import uuid
 from datetime import datetime, timezone
+import asyncio
 
 from backend.db.database import get_db
 from backend.db.models import Session, SessionStatus, Message, MessageRole, Report
@@ -12,6 +13,7 @@ from backend.api.deps import get_current_user
 from backend.db.models import User
 from backend.core.security import decode_access_token
 from backend.core.observability import get_langfuse_callback
+from backend.evaluation.ragas_eval import evaluate_report
 
 router = APIRouter(prefix="/research", tags=["research"])
 
@@ -79,6 +81,8 @@ async def research_websocket(
         )
         db.add(user_message)
         await db.flush()
+        
+
 
         # 通知前端开始
         await websocket.send_json({"type": "start", "message": "开始研究..."})
@@ -116,7 +120,6 @@ async def research_websocket(
                     report_content = node_output.get("report", "")
                     papers = node_output.get("papers", [])
 
-                    # 存报告到数据库
                     report = Report(
                         id=uuid.uuid4(),
                         session_id=session.id,
@@ -125,8 +128,17 @@ async def research_websocket(
                         content={"markdown": report_content, "papers": papers},
                     )
                     db.add(report)
+                    await db.flush()
 
-                    # 更新 session 状态
+                    # Ragas 评估
+                    asyncio.create_task(evaluate_report(
+                        db=db,
+                        report_id=str(report.id),
+                        query=query,
+                        report_content=report_content,
+                        papers=papers,
+                    ))
+
                     session.status = SessionStatus.done
                     session.title = query[:100]
                     await db.flush()
