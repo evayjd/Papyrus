@@ -15,6 +15,12 @@
         >
           <span>+</span> 新建研究
         </button>
+        <RouterLink
+          to="/reports"
+          class="w-full px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 text-sm rounded-lg transition-colors flex items-center gap-2 mt-2"
+        >
+          <span>📋</span> 历史报告
+        </RouterLink>
 
         <div class="mt-4 flex-1 overflow-y-auto space-y-1">
           <p class="text-xs text-gray-500 px-2 mb-2">最近研究</p>

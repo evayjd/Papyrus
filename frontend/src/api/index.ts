@@ -64,6 +64,9 @@ export const api = {
 
   deleteReport: (id: string) =>
     request<null>(`/reports/${id}`, { method: 'DELETE' }),
+
+  getEvaluation: (reportId: string) =>
+  request<{ faithfulness: number; answer_relevancy: number; context_recall: number }>(`/reports/${reportId}/evaluation`),
 }
 
 export function createWebSocket(sessionId: string): WebSocket {
